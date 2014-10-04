@@ -169,6 +169,7 @@ class InstantiatorTest extends PHPUnit_Framework_TestCase
             array('InstantiatorTestAsset\\SimpleSerializableAsset'),
             array('InstantiatorTestAsset\\PharExceptionAsset'),
             array('InstantiatorTestAsset\\UnCloneableAsset'),
+            array('InstantiatorTestAsset\\XMLReaderAsset'),
         );
 
         if (\PHP_VERSION_ID === 50429 || \PHP_VERSION_ID === 50513) {
