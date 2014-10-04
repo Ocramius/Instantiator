@@ -114,6 +114,29 @@ final class Instantiator implements InstantiatorInterface
     }
 
     /**
+     * Checks if a class is cloneable
+     *
+     * @internal
+     * @private
+     *
+     * This method is only exposed as public because of PHP 5.3 compatibility. Do not
+     * use this method in your own code
+     *
+     * @param ReflectionClass $class
+     *
+     * @return bool
+     */
+    public function isSafeToClone(ReflectionClass $class)
+    {
+        if (method_exists($class, 'isCloneable') && ! $class->isCloneable()) {
+            return false;
+        }
+
+        // not cloneable if it implements `__clone`, as we want to avoid calling it
+        return ! $class->hasMethod('__clone');
+    }
+
+    /**
      * @param string $className
      *
      * @return ReflectionClass
@@ -258,16 +281,15 @@ final class Instantiator implements InstantiatorInterface
     private function getCloneablesMap()
     {
         $cachedInstantiators = $this->getInstantiatorsMap();
+        $that                = $this;
 
         return self::$cachedCloneables = self::$cachedCloneables
-            ?: new CallbackLazyMap(function ($className) use ($cachedInstantiators) {
+            ?: new CallbackLazyMap(function ($className) use ($cachedInstantiators, $that) {
                 /* @var $factory Closure */
                 $factory    = $cachedInstantiators->$className;
                 $instance   = $factory();
-                $reflection = new ReflectionClass($instance);
 
-                // not cloneable if it implements `__clone`, as we want to avoid calling it
-                if ($reflection->hasMethod('__clone')) {
+                if (! $that->isSafeToClone(new ReflectionClass($className))) {
                     return null;
                 }
 
